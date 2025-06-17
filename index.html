@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Filmes de Pamela e Lucas</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(145deg, #ffe3f0, #fff3f9);
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background-color: #ffffffcc;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 2.2rem;
+      color: #e91e63;
+    }
+    form, .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+    input, button, select {
+      flex: 1 1 200px;
+      padding: 10px;
+      border: none;
+      border-radius: 20px;
+      background-color: #ffe0f0;
+      color: #333;
+      font-size: 1rem;
+    }
+    button {
+      background-color: #f48fb1;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #ec407a;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      border-radius: 10px;
+      overflow: hidden;
+      background-color: #fff0f8;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #f8bbd0;
+      text-align: center;
+    }
+    th {
+      background-color: #f48fb1;
+      color: white;
+    }
+    tbody tr:nth-child(even) {
+      background-color: #fde0ef;
+    }
+    #averageRatings, #ratingChartContainer {
+      margin-top: 30px;
+      text-align: center;
+    }
+    canvas {
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Filmes de Pamela e Lucas</h1>
+
+  <form id="filmForm">
+    <input type="text" id="filmName" placeholder="Nome do Filme" required />
+    <input type="text" id="filmGenre" placeholder="Gênero do Filme" required />
+    <input type="number" id="myRating" placeholder="Nota da Pamela (1-10)" min="1" max="10" required />
+    <input type="number" id="lucasRating" placeholder="Nota do Lucas (1-10)" min="1" max="10" required />
+    <input type="date" id="filmDate" required />
+    <button type="submit">Salvar Filme</button>
+  </form>
+
+  <div class="filters">
+    <input type="text" id="searchInput" placeholder="Buscar por nome..." />
+    <input type="number" id="filterMyRating" placeholder="Nota da Pamela" min="1" max="10" />
+    <input type="number" id="filterLucasRating" placeholder="Nota do Lucas" min="1" max="10" />
+    <button id="filterButton">Filtrar</button>
+  </div>
+
+  <table id="filmTable">
+    <thead>
+      <tr>
+        <th>Filme</th>
+        <th>Gênero</th>
+        <th>Pamela</th>
+        <th>Lucas</th>
+        <th>Data</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div id="averageRatings">
+    <p>Média da Pamela: <span id="myAverage">0</span></p>
+    <p>Média do Lucas: <span id="lucasAverage">0</span></p>
+  </div>
+
+  <div id="ratingChartContainer">
+    <canvas id="ratingChart"></canvas>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD5IYA5RuZPtamQDhhv0GjtnXr1w2SEHw4",
+    authDomain: "filmes-lucas-e-pamela.firebaseapp.com",
+    projectId: "filmes-lucas-e-pamela",
+    storageBucket: "filmes-lucas-e-pamela.appspot.com",
+    messagingSenderId: "317543134743",
+    appId: "1:317543134743:web:a3b3bc782416e1eaec8e52"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const filmesRef = collection(db, "filmes");
+
+  const filmForm = document.getElementById("filmForm");
+  const filmTable = document.querySelector("#filmTable tbody");
+  const myAverage = document.getElementById("myAverage");
+  const lucasAverage = document.getElementById("lucasAverage");
+  const searchInput = document.getElementById("searchInput");
+  const filterMyRating = document.getElementById("filterMyRating");
+  const filterLucasRating = document.getElementById("filterLucasRating");
+  const filterButton = document.getElementById("filterButton");
+
+  let editingId = null;
+
+  filterButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    loadFilms();
+  });
+
+  filmForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("filmName").value;
+    const genre = document.getElementById("filmGenre").value;
+    const myRating = parseFloat(document.getElementById("myRating").value);
+    const lucasRating = parseFloat(document.getElementById("lucasRating").value);
+    const date = document.getElementById("filmDate").value;
+
+    if (!name || !genre || myRating < 1 || myRating > 10 || lucasRating < 1 || lucasRating > 10) {
+      alert("Preencha todos os campos corretamente.");
+      return;
+    }
+
+    const data = { name, genre, myRating, lucasRating, date };
+
+    if (editingId) {
+      await updateDoc(doc(db, "filmes", editingId), data);
+      editingId = null;
+    } else {
+      await addDoc(filmesRef, data);
+    }
+
+    filmForm.reset();
+    loadFilms();
+  });
+
+  async function loadFilms() {
+    filmTable.innerHTML = "";
+    const snapshot = await getDocs(filmesRef);
+    let totalMy = 0, totalLucas = 0, count = 0;
+    let chartLabels = [], chartMy = [], chartLucas = [];
+
+    snapshot.forEach((docItem) => {
+      const film = docItem.data();
+      const search = searchInput.value.toLowerCase();
+      const myFilter = filterMyRating.value;
+      const lucasFilter = filterLucasRating.value;
+
+      if (
+        (search && !film.name.toLowerCase().includes(search)) ||
+        (myFilter && film.myRating != parseFloat(myFilter)) ||
+        (lucasFilter && film.lucasRating != parseFloat(lucasFilter))
+      ) return;
+
+      const row = filmTable.insertRow();
+      row.innerHTML = `
+        <td>${film.name}</td>
+        <td>${film.genre || ''}</td>
+        <td>${film.myRating}</td>
+        <td>${film.lucasRating}</td>
+        <td>${film.date}</td>
+        <td>
+          <button onclick="editFilm('${docItem.id}', \`${JSON.stringify(film)}\`)">✏️</button>
+          <button onclick="deleteFilm('${docItem.id}')">🗑️</button>
+        </td>
+      `;
+
+      totalMy += film.myRating;
+      totalLucas += film.lucasRating;
+      chartLabels.push(film.name);
+      chartMy.push(film.myRating);
+      chartLucas.push(film.lucasRating);
+      count++;
+    });
+
+    myAverage.textContent = count ? (totalMy / count).toFixed(2) : 0;
+    lucasAverage.textContent = count ? (totalLucas / count).toFixed(2) : 0;
+    renderChart(chartLabels, chartMy, chartLucas);
+  }
+
+  window.editFilm = function (id, filmJson) {
+    const film = JSON.parse(filmJson);
+    document.getElementById("filmName").value = film.name;
+    document.getElementById("filmGenre").value = film.genre || "";
+    document.getElementById("myRating").value = film.myRating;
+    document.getElementById("lucasRating").value = film.lucasRating;
+    document.getElementById("filmDate").value = film.date;
+    editingId = id;
+  };
+
+  window.deleteFilm = async function (id) {
+    await deleteDoc(doc(db, "filmes", id));
+    loadFilms();
+  };
+
+  function renderChart(labels, dataMy, dataLucas) {
+    const ctx = document.getElementById('ratingChart').getContext('2d');
+    if (window.myChart) window.myChart.destroy();
+    window.myChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Pamela', backgroundColor: '#f48fb1', data: dataMy },
+          { label: 'Lucas', backgroundColor: '#81d4fa', data: dataLucas }
+        ]
+      },
+      options: { responsive: true, scales: { y: { beginAtZero: true, max: 10 } } }
+    });
+  }
+
+  loadFilms();
+</script>
+</body>
+</html>
