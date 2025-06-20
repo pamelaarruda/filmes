@@ -128,8 +128,9 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
   import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
+ 
   const firebaseConfig = {
-    apiKey: "AIzaSyD5IYA5RuZPtamQDhhv0GjtnXr1w2SEHw4",
+    apiKey: "AIzaSyAbGVeNUO3Z-90yjKI3RlnPBpUH-UGEc_4", 
     authDomain: "filmes-lucas-e-pamela.firebaseapp.com",
     projectId: "filmes-lucas-e-pamela",
     storageBucket: "filmes-lucas-e-pamela.appspot.com",
@@ -238,27 +239,4 @@
   };
 
   window.deleteFilm = async function (id) {
-    await deleteDoc(doc(db, "filmes", id));
-    loadFilms();
-  };
-
-  function renderChart(labels, dataMy, dataLucas) {
-    const ctx = document.getElementById('ratingChart').getContext('2d');
-    if (window.myChart) window.myChart.destroy();
-    window.myChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          { label: 'Pamela', backgroundColor: '#f48fb1', data: dataMy },
-          { label: 'Lucas', backgroundColor: '#81d4fa', data: dataLucas }
-        ]
-      },
-      options: { responsive: true, scales: { y: { beginAtZero: true, max: 10 } } }
-    });
-  }
-
-  loadFilms();
-</script>
-</body>
-</html>
+    await deleteDoc(doc(db, "filmes", i
