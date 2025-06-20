@@ -238,5 +238,28 @@
     editingId = id;
   };
 
-  window.deleteFilm = async function (id) {
-    await deleteDoc(doc(db, "filmes", i
+   window.deleteFilm = async function (id) {
+    await deleteDoc(doc(db, "filmes", id));
+    loadFilms();
+  };
+
+  function renderChart(labels, dataMy, dataLucas) {
+    const ctx = document.getElementById('ratingChart').getContext('2d');
+    if (window.myChart) window.myChart.destroy();
+    window.myChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Pamela', backgroundColor: '#f48fb1', data: dataMy },
+          { label: 'Lucas', backgroundColor: '#81d4fa', data: dataLucas }
+        ]
+      },
+      options: { responsive: true, scales: { y: { beginAtZero: true, max: 10 } } }
+    });
+  }
+
+  loadFilms();
+</script>
+</body>
+</html>
