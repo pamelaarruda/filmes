@@ -128,9 +128,8 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
   import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
- 
   const firebaseConfig = {
-    apiKey: "fe3c34034a1bb0d1ac468ee674d175454a5a41bd", 
+    apiKey: "fe3c34034a1bb0d1ac468ee674d175454a5a41bd",
     authDomain: "filmes-lucas-e-pamela.firebaseapp.com",
     projectId: "filmes-lucas-e-pamela",
     storageBucket: "filmes-lucas-e-pamela.appspot.com",
@@ -238,7 +237,7 @@
     editingId = id;
   };
 
-   window.deleteFilm = async function (id) {
+  window.deleteFilm = async function (id) {
     await deleteDoc(doc(db, "filmes", id));
     loadFilms();
   };
