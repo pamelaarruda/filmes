@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Filmes de Pamela e Lucas</title>
+  <title>Filmes</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
@@ -150,7 +150,7 @@
   const filterLucasRating = document.getElementById("filterLucasRating");
   const filterButton = document.getElementById("filterButton");
 
-  let editingId = null;
+  window.editingId = null;
 
   filterButton.addEventListener("click", (e) => {
     e.preventDefault();
@@ -172,9 +172,10 @@
 
     const data = { name, genre, myRating, lucasRating, date };
 
-    if (editingId) {
-      await updateDoc(doc(db, "filmes", editingId), data);
-      editingId = null;
+   if (window.editingId) {
+  await updateDoc(doc(db, "filmes", window.editingId), data);
+  window.editingId = null;
+}
     } else {
       await addDoc(filmesRef, data);
     }
