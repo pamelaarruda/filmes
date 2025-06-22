@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Filmes de Pamela e Lucas</title>
+  <title>Filmes</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
@@ -87,16 +87,16 @@
   <form id="filmForm">
     <input type="text" id="filmName" placeholder="Nome do Filme" required />
     <input type="text" id="filmGenre" placeholder="Gênero do Filme" required />
-    <input type="number" id="myRating" placeholder="Nota da Pamela (1-10)" min="1" max="10" required />
-    <input type="number" id="lucasRating" placeholder="Nota do Lucas (1-10)" min="1" max="10" required />
+    <input type="number" step="0.1" id="myRating" placeholder="Nota da Pamela (1-10)" min="1" max="10" required />
+    <input type="number" step="0.1" id="lucasRating" placeholder="Nota do Lucas (1-10)" min="1" max="10" required />
     <input type="date" id="filmDate" required />
     <button type="submit">Salvar Filme</button>
   </form>
 
   <div class="filters">
     <input type="text" id="searchInput" placeholder="Buscar por nome..." />
-    <input type="number" id="filterMyRating" placeholder="Nota da Pamela" min="1" max="10" />
-    <input type="number" id="filterLucasRating" placeholder="Nota do Lucas" min="1" max="10" />
+    <input type="number" step="0.1" id="filterMyRating" placeholder="Nota da Pamela" min="1" max="10" />
+    <input type="number" step="0.1" id="filterLucasRating" placeholder="Nota do Lucas" min="1" max="10" />
     <button id="filterButton">Filtrar</button>
   </div>
 
